@@ -13,7 +13,7 @@
     "dapp:prod": "webpack --mode production  --config webpack.config.dapp.js",
     "server": "rm -rf ./build/server && webpack --config webpack.config.server.js"
   },
-  "author": "Nik Kalyani <nik@kalyani.com> https://www.kalyani.com",
+  "author": "Nik Kalyani <nik@kalyani.com> https://www.kalyani.com, Mohammed Al Shaalan <https://twitter.com/imsh3lan> https://ish3lan.com",
   "devDependencies": {
     "@babel/cli": "^7.0.0-beta.46",
     "@babel/core": "^7.0.0-beta.46",

@@ -89,7 +89,22 @@ contract FlightSuretyApp {
                             pure 
                             returns(bool) 
     {
-        return true;  // Modify to call data contract's status
+        return operational;  // Modify to call data contract's status
+    }
+
+      /**
+    * @dev Sets contract operations on/off
+    *
+    * When operational mode is disabled, all write transactions except for this one will fail
+    */    
+    function setOperatingStatus
+                            (
+                                bool mode
+                            ) 
+                            external
+                            requireContractOwner 
+    {
+        operational = mode;
     }
 
     /********************************************************************************************/

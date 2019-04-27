@@ -26,7 +26,7 @@ contract FlightSuretyApp {
 
     address private contractOwner;          // Account used to deploy contract
 
-    boolean private operational = true;
+    bool private operational = true;
     struct Flight {
         bool isRegistered;
         uint8 statusCode;

@@ -4,6 +4,7 @@ import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 contract FlightSuretyData {
     using SafeMath for uint256;
+    using SafeMath for uint16;
 
     /********************************************************************************************/
     /*                                       DATA VARIABLES                                     */
@@ -11,6 +12,21 @@ contract FlightSuretyData {
 
     address private contractOwner;                                      // Account used to deploy contract
     bool private operational = true;                                    // Blocks all state changes throughout the contract if false
+
+    struct Airline{
+        bool registered;
+        bool funded;
+        bytes32[] flightKeys;
+        mapping(address=> bool) votes;
+
+    }
+
+    uint16 private airlinesCount = 0;
+    uint16 private registeredAirlinesCount = 0;
+    uint16 private fundedAirlinesCount = 0;
+    
+    mapping(address => Airline) private airlines;
+
 
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
@@ -22,11 +38,23 @@ contract FlightSuretyData {
     *      The deploying account becomes contractOwner
     */
     constructor
-                                (
-                                ) 
-                                public 
+    (
+        address airlineAddress
+        ) 
+    public
+    payable 
     {
+        require(msg.value >= 1 ether);
         contractOwner = msg.sender;
+        airlines[airlineAddress] = Airline({
+            registered:true, 
+            funded:true,
+            flightKeys: new bytes32[](0)
+            });
+        airlinesCount = airlinesCount.add(1);
+        registeredAirlinesCount = registeredAirlinesCount.add(1);
+        fundedAirlinesCount = fundedAirlinesCount.add(1);
+
     }
 
     /********************************************************************************************/
@@ -56,6 +84,37 @@ contract FlightSuretyData {
         _;
     }
 
+    /**
+    * @dev Modifier that requires the airline address to be presend in airlines array
+    */
+    modifier requireAirLineExist(address airlineAddress) 
+    {
+        require(airlineExists(airlineAddress), "Airline does not existed");
+        _;  // All modifiers require an "_" which indicates where the function body will be added
+    }
+
+    /**
+    * @dev Modifier that requires the airline address to be registered in airlines array
+    */
+    modifier requireAirLineRegistered(address airlineAddress) 
+    {
+        require(airlineExists(airlineAddress), "Airline does not existed");
+        require(airlines[airlineAddress].registered, "Airline is not registered");
+        _;  // All modifiers require an "_" which indicates where the function body will be added
+    }
+
+    /**
+    * @dev Modifier that requires the airline address to be funded in airlines array
+    */
+    modifier requireAirLineFunded(address airlineAddress) 
+    {
+        require(airlineExists(airlineAddress), "Airline does not existed");
+        require(airlines[airlineAddress].registered, "Airline is not registered");
+        require(airlines[airlineAddress].registered, "Airline is not funded");
+
+        _;  // All modifiers require an "_" which indicates where the function body will be added
+    }
+
     /********************************************************************************************/
     /*                                       UTILITY FUNCTIONS                                  */
     /********************************************************************************************/
@@ -66,9 +125,9 @@ contract FlightSuretyData {
     * @return A bool that is the current operating status
     */      
     function isOperational() 
-                            public 
-                            view 
-                            returns(bool) 
+    public 
+    view 
+    returns(bool) 
     {
         return operational;
     }
@@ -78,13 +137,15 @@ contract FlightSuretyData {
     * @dev Sets contract operations on/off
     *
     * When operational mode is disabled, all write transactions except for this one will fail
-    */    
+    */ 
     function setOperatingStatus
-                            (
-                                bool mode
-                            ) 
-                            external
-                            requireContractOwner 
+
+    (
+        bool mode
+        ) 
+    external
+    requireContractOwner 
+
     {
         operational = mode;
     }
@@ -99,11 +160,41 @@ contract FlightSuretyData {
     *
     */   
     function registerAirline
-                            (   
-                            )
-                            external
-                            pure
+    (
+        address airlineAddress,
+        bool registered,
+        bool funded
+        )
+    requireIsOperational
+    external
     {
+        airlines[airlineAddress] = Airline(
+        {
+            registered:registered, 
+            funded:funded,
+            flightKeys: new bytes32[]
+            });
+
+        airlinesCount = airlinesCount.add(1);
+        if(registered){
+            registeredAirlinesCount = registeredAirlinesCount.add(1);
+        }
+        if(funded){
+            fundedAirlinesCount = fundedAirlinesCount.add(1);
+        }
+    }
+
+
+    function airlineExists(address airlineAddress){
+        return airlines[airlineAddress].exists;
+    }
+
+
+    function airlineRegistered(address airlineAddress){
+        if (airlineExists(airlineAddress)){
+            return airlines[airlineAddress].registered;
+        }
+        return false;
     }
 
 
@@ -112,37 +203,37 @@ contract FlightSuretyData {
     *
     */   
     function buy
-                            (                             
-                            )
-                            external
-                            payable
+    (                             
+        )
+    external
+    payable
     {
 
     }
 
     /**
      *  @dev Credits payouts to insurees
-    */
-    function creditInsurees
-                                (
-                                )
-                                external
-                                pure
-    {
-    }
-    
+     */
+     function creditInsurees
+     (
+        )
+     external
+     pure
+     {
+     }
+
 
     /**
      *  @dev Transfers eligible payout funds to insuree
      *
-    */
-    function pay
-                            (
-                            )
-                            external
-                            pure
-    {
-    }
+     */
+     function pay
+     (
+        )
+     external
+     pure
+     {
+     }
 
    /**
     * @dev Initial funding for the insurance. Unless there are too many delayed flights
@@ -150,22 +241,25 @@ contract FlightSuretyData {
     *
     */   
     function fund
-                            (   
-                            )
-                            public
-                            payable
+    ()
+    public
+    payable
+    requireIsOperational
+    requireAirLineRegistered(msg.sender)
     {
+        require(msg.value >= 1 ether, "No suffecient funds supplied");
+        airlines[msg.sender];
     }
 
     function getFlightKey
-                        (
-                            address airline,
-                            string memory flight,
-                            uint256 timestamp
-                        )
-                        pure
-                        internal
-                        returns(bytes32) 
+    (
+        address airline,
+        string memory flight,
+        uint256 timestamp
+        )
+    pure
+    internal
+    returns(bytes32) 
     {
         return keccak256(abi.encodePacked(airline, flight, timestamp));
     }
@@ -175,12 +269,19 @@ contract FlightSuretyData {
     *
     */
     function() 
-                            external 
-                            payable 
+    external 
+    payable 
     {
         fund();
     }
 
 
+
+    function getFundedAirlinesCount()
+    requireIsOperational
+    returns(uint16)
+    {
+        return fundedAirlinesCount;
+    }
 }
 

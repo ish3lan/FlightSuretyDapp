@@ -13,17 +13,23 @@ contract FlightSuretyData {
     address private contractOwner;                                      // Account used to deploy contract
     bool private operational = true;                                    // Blocks all state changes throughout the contract if false
 
+
     struct Airline{
+        bool exists;
         bool registered;
         bool funded;
         bytes32[] flightKeys;
-        mapping(address=> bool) votes;
+        Votes votes;
 
     }
+    struct Votes{
+        uint votersCount;
+        mapping(address => bool) voters;
+    }
 
-    uint16 private airlinesCount = 0;
-    uint16 private registeredAirlinesCount = 0;
-    uint16 private fundedAirlinesCount = 0;
+    uint256 private airlinesCount = 0;
+    uint256 private registeredAirlinesCount = 0;
+    uint256 private fundedAirlinesCount = 0;
     
     mapping(address => Airline) private airlines;
 
@@ -41,15 +47,15 @@ contract FlightSuretyData {
     (
         address airlineAddress
         ) 
-    public
-    payable 
+    public 
     {
-        require(msg.value >= 1 ether);
         contractOwner = msg.sender;
         airlines[airlineAddress] = Airline({
+            exists:true,
             registered:true, 
-            funded:true,
-            flightKeys: new bytes32[](0)
+            funded: false,
+            flightKeys: new bytes32[](0),
+            votes: Votes(0)
             });
         airlinesCount = airlinesCount.add(1);
         registeredAirlinesCount = registeredAirlinesCount.add(1);
@@ -89,7 +95,7 @@ contract FlightSuretyData {
     */
     modifier requireAirLineExist(address airlineAddress) 
     {
-        require(airlineExists(airlineAddress), "Airline does not existed");
+        require(airlines[airlineAddress].exists, "Airline does not existed");
         _;  // All modifiers require an "_" which indicates where the function body will be added
     }
 
@@ -98,7 +104,7 @@ contract FlightSuretyData {
     */
     modifier requireAirLineRegistered(address airlineAddress) 
     {
-        require(airlineExists(airlineAddress), "Airline does not existed");
+        require(airlines[airlineAddress].exists, "Airline does not existed");
         require(airlines[airlineAddress].registered, "Airline is not registered");
         _;  // All modifiers require an "_" which indicates where the function body will be added
     }
@@ -108,7 +114,7 @@ contract FlightSuretyData {
     */
     modifier requireAirLineFunded(address airlineAddress) 
     {
-        require(airlineExists(airlineAddress), "Airline does not existed");
+        require(airlines[airlineAddress].exists, "Airline does not existed");
         require(airlines[airlineAddress].registered, "Airline is not registered");
         require(airlines[airlineAddress].registered, "Airline is not funded");
 
@@ -170,9 +176,11 @@ contract FlightSuretyData {
     {
         airlines[airlineAddress] = Airline(
         {
+            exists: true,
             registered:registered, 
             funded:funded,
-            flightKeys: new bytes32[]
+            flightKeys: new bytes32[](0),
+            votes: Votes(0)
             });
 
         airlinesCount = airlinesCount.add(1);
@@ -185,14 +193,32 @@ contract FlightSuretyData {
     }
 
 
-    function airlineExists(address airlineAddress){
+    function airlineExists(address airlineAddress)
+    external
+    view
+    returns(bool)
+    {
         return airlines[airlineAddress].exists;
     }
 
 
-    function airlineRegistered(address airlineAddress){
-        if (airlineExists(airlineAddress)){
+    function airlineRegistered(address airlineAddress)
+    external
+    view
+    returns(bool)
+    {
+        if (airlines[airlineAddress].exists){
             return airlines[airlineAddress].registered;
+        }
+        return false;
+    }
+    function airlineFunded(address airlineAddress)
+    external
+    view
+    returns(bool)
+    {
+        if (airlines[airlineAddress].registered){
+            return airlines[airlineAddress].funded;
         }
         return false;
     }
@@ -279,7 +305,8 @@ contract FlightSuretyData {
 
     function getFundedAirlinesCount()
     requireIsOperational
-    returns(uint16)
+    view
+    returns(uint256)
     {
         return fundedAirlinesCount;
     }

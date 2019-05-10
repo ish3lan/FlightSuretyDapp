@@ -18,6 +18,8 @@ contract FlightSuretyApp {
     /*                                       DATA VARIABLES                                     */
     /********************************************************************************************/
 
+    uint256 MinimumAirlinesCount = 4;
+
     // Flight status codees
     uint8 private constant STATUS_CODE_UNKNOWN = 0;
     uint8 private constant STATUS_CODE_ON_TIME = 10;
@@ -78,7 +80,7 @@ contract FlightSuretyApp {
 
     modifier requireIsRegisteredAirLine()
     {
-        require(dataContract.airlineIsRegistered(msg.sender), "Airline is not registered");
+        require(dataContract.airlineRegistered(msg.sender), "Airline is not registered");
         _;
     }
     /********************************************************************************************/
@@ -95,7 +97,7 @@ contract FlightSuretyApp {
     public 
     {
         contractOwner = msg.sender;
-        dataContract = FlightSuretyData.value(1 ether)(flightSuretyDataAddress);
+        dataContract = FlightSuretyData(flightSuretyDataAddress);
     }
 
     /********************************************************************************************/
@@ -156,7 +158,7 @@ contract FlightSuretyApp {
     requireIsRegisteredAirLine
     {
         // bool needsVoting = airlineRegistrationNeedsVoting();
-        if ( dataContract.getFundedAirlinesCount > 4){
+        if ( dataContract.getFundedAirlinesCount() > MinimumAirlinesCount){
             dataContract.registerAirline(airlineAddress, false, false);
         }
         else{

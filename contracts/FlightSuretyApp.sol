@@ -72,21 +72,21 @@ contract FlightSuretyApp {
     }
 
 
-    modifier requireIsAirLine()
+    modifier requireIsAirLine(address airlineAddress)
     {
-        require(dataContract.airlineExists(msg.sender), "Airline does not exist in requireIsAirLine");
+        require(dataContract.airlineExists(airlineAddress), "Airline does not exist in requireIsAirLine");
         _;
     }
 
-    modifier requireIsRegisteredAirLine()
+    modifier requireIsRegisteredAirLine(address airlineAddress)
     {
-        require(dataContract.airlineRegistered(msg.sender), "Airline is not registered in requireIsRegisteredAirLine");
+        require(dataContract.airlineRegistered(airlineAddress), "Airline is not registered in requireIsRegisteredAirLine");
         _;
     }
 
-    modifier requireIsFundedAirLine()
+    modifier requireIsFundedAirLine(address airlineAddress)
     {
-        require(dataContract.airlineFunded(msg.sender), "Airline is not funded in requireIsFundedAirLine");
+        require(dataContract.airlineFunded(airlineAddress), "Airline is not funded in requireIsFundedAirLine");
         _;
     }
     /********************************************************************************************/
@@ -161,7 +161,7 @@ contract FlightSuretyApp {
         )
     external
     requireIsOperational
-    requireIsFundedAirLine
+    requireIsFundedAirLine(msg.sender)
     {
         // bool needsVoting = airlineRegistrationNeedsVoting();
         if ( dataContract.getFundedAirlinesCount() > MinimumAirlinesCount){
@@ -188,8 +188,26 @@ contract FlightSuretyApp {
     requireIsOperational
     {
         require(msg.sender == airlineAddress, "Only the airline can fund itself");
-        require(msg.value >= 1 ether, "No enough funding recieved");
+        require(msg.value >= REGISTRATION_FEE, "No enough funding recieved");
         dataContract.fund.value(1 ether)(airlineAddress);
+    }
+
+
+   /**
+    * @dev vote for an airline to be registered 
+    *
+    */   
+    function voteForAirline
+    (
+        address airlineAddress
+        )
+    external
+    payable
+    requireIsOperational
+    requireIsFundedAirLine(msg.sender)
+    requireIsAirLine(airlineAddress)
+    {
+        dataContract.voteForAirline(airlineAddress);
     }
 
 
@@ -252,7 +270,7 @@ contract FlightSuretyApp {
     uint8 private nonce = 0;    
 
     // Fee to be paid when registering oracle
-    uint256 public constant REGISTRATION_FEE = 1 ether;
+    uint256 public constant REGISTRATION_FEE = 10 ether;
 
     // Number of oracles that must respond for valid status
     uint256 private constant MIN_RESPONSES = 3;

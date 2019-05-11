@@ -135,7 +135,7 @@ contract('Flight Surety Tests', async (accounts) => {
     let newAirline = accounts[3];
     // ACT
     try {
-      await config.flightSuretyApp.fundAirline(config.firstAirline, {from: config.firstAirline,value: web3.utils.toWei('1', "ether")});
+      await config.flightSuretyApp.fundAirline(config.firstAirline, {from: config.firstAirline,value: web3.utils.toWei('10', "ether")});
       await config.flightSuretyApp.registerAirline(newAirline, {from: config.firstAirline});
     }
     catch(e) {

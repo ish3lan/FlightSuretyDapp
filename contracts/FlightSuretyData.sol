@@ -207,33 +207,25 @@ contract FlightSuretyData {
     }
 
 
-    function airlineExists(address airlineAddress)
+
+ /**
+    * @dev vote for an airline to be registered 
+    *
+    */   
+    function voteForAirline
+    (
+        address airlineAddress
+        )
     external
-    view
-    returns(bool)
+    payable
+    requireIsOperational
+    requireIsFundedAirLine(msg.sender)
+    requireIsAirLine(airlineAddress)
     {
-        return airlines[airlineAddress].exists;
+        dataContract.voteForAirline(airlineAddress);
     }
 
 
-    function airlineRegistered(address airlineAddress)
-    external
-    view
-    returns(bool)
-    {
-        if (airlines[airlineAddress].exists){
-            return airlines[airlineAddress].registered;
-        }
-        return false;
-    }
-    function airlineFunded(address airlineAddress)
-    external
-    view
-    returns(bool)
-    {
-        require(airlines[airlineAddress].funded, "Airline is not funded in airlineFunded");
-        return airlines[airlineAddress].funded;
-    }
 
 
    /**
@@ -285,7 +277,7 @@ contract FlightSuretyData {
     requireIsOperational
     requireAirLineRegistered(airlineAddress)
     {
-        require(msg.value >= 1 ether, "No suffecient funds supplied");
+        require(msg.value >= 10 ether, "No suffecient funds supplied");
         airlines[airlineAddress].funded = true;
         fundedAirlinesCount = fundedAirlinesCount.add(1);
         emit AirlineFunded( airlineAddress,  airlines[airlineAddress].exists, airlines[airlineAddress].registered,  airlines[airlineAddress].funded, fundedAirlinesCount );
@@ -317,6 +309,33 @@ contract FlightSuretyData {
     }
 
 
+    function airlineExists(address airlineAddress)
+    external
+    view
+    returns(bool)
+    {
+        return airlines[airlineAddress].exists;
+    }
+
+
+    function airlineRegistered(address airlineAddress)
+    external
+    view
+    returns(bool)
+    {
+        if (airlines[airlineAddress].exists){
+            return airlines[airlineAddress].registered;
+        }
+        return false;
+    }
+    function airlineFunded(address airlineAddress)
+    external
+    view
+    returns(bool)
+    {
+        // require(airlines[airlineAddress].funded, "Airline is not funded in airlineFunded");
+        return airlines[airlineAddress].funded;
+    }
 
     function getFundedAirlinesCount()
     requireIsOperational

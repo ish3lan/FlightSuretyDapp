@@ -43,6 +43,15 @@ contract FlightSuretyApp {
 
     FlightSuretyData dataContract;
 
+
+
+    event AirlineSwitchToRegistered(address airlineAddress, bool registered);
+
+    event AirlineAdded(address airlineAddress);
+    event AirlineRegistered(address airlineAddress);
+
+
+
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
     /********************************************************************************************/
@@ -164,12 +173,13 @@ contract FlightSuretyApp {
     requireIsFundedAirLine(msg.sender)
     {
         // bool needsVoting = airlineRegistrationNeedsVoting();
-        if ( dataContract.getFundedAirlinesCount() > MinimumAirlinesCount){
+        if ( dataContract.getRegisteredAirlinesCount() >= MinimumAirlinesCount){
             dataContract.registerAirline(airlineAddress, false);
+            emit AirlineAdded(airlineAddress);
         }
         else{
             dataContract.registerAirline(airlineAddress, true);
-
+            emit AirlineRegistered(airlineAddress);
         }
     }
 
@@ -189,7 +199,7 @@ contract FlightSuretyApp {
     {
         require(msg.sender == airlineAddress, "Only the airline can fund itself");
         require(msg.value >= REGISTRATION_FEE, "No enough funding recieved");
-        dataContract.fund.value(1 ether)(airlineAddress);
+        dataContract.fund.value(10 ether)(airlineAddress);
     }
 
 
@@ -202,12 +212,14 @@ contract FlightSuretyApp {
         address airlineAddress
         )
     external
-    payable
     requireIsOperational
     requireIsFundedAirLine(msg.sender)
     requireIsAirLine(airlineAddress)
     {
-        dataContract.voteForAirline(airlineAddress);
+        dataContract.voteForAirline(msg.sender, airlineAddress);
+        if (dataContract.getAirlineVotesCount(airlineAddress) > dataContract.getMinimumRequireVotingCount()){
+            dataContract.setAirlineRegistered(airlineAddress);
+        }
     }
 
 
@@ -261,7 +273,7 @@ contract FlightSuretyApp {
             });
 
         emit OracleRequest(index, airline, flight, timestamp);
-    } 
+    }
 
 
 // region ORACLE MANAGEMENT

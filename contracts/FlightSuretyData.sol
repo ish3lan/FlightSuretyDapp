@@ -37,7 +37,8 @@ contract FlightSuretyData {
     event AirlineExist(address airlineAddress, bool exist);
     event AirlineRegistered(address airlineAddress, bool exist, bool registered);
     event AirlineFunded(address airlineAddress, bool exist, bool registered, bool funded, uint fundedCount);
-
+    event AirlineVoted(address votingAirlineAddress, address votedAirlineAddress, uint startingVotesCount, uint endingVotesCount);
+    event GetVotesCalled(uint votesCount);
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
     /********************************************************************************************/
@@ -197,15 +198,28 @@ contract FlightSuretyData {
             flightKeys: new bytes32[](0),
             votes: Votes(0)
             });
-        emit AirlineExist(airlineAddress,  airlines[airlineAddress].exists);
-
         airlinesCount = airlinesCount.add(1);
-        if(registered){
+        if(registered == true){
             registeredAirlinesCount = registeredAirlinesCount.add(1);
             emit AirlineRegistered( airlineAddress,  airlines[airlineAddress].exists, airlines[airlineAddress].registered);
         }
+        else{
+            emit AirlineExist(airlineAddress,  airlines[airlineAddress].exists);
+
+        }
     }
 
+    function setAirlineRegistered(address airlineAddress)
+    requireIsOperational
+    requireAirLineExist(airlineAddress)
+    external
+    {
+        require(airlines[airlineAddress].registered == false , "Airline is already registered in setAirlineRegistered");
+        airlines[airlineAddress].registered = true;
+        registeredAirlinesCount = registeredAirlinesCount.add(1);
+        emit AirlineRegistered( airlineAddress,  airlines[airlineAddress].exists, airlines[airlineAddress].registered);
+
+    }
 
 
  /**
@@ -214,18 +228,40 @@ contract FlightSuretyData {
     */   
     function voteForAirline
     (
+        address votingAirlineAddress,
         address airlineAddress
         )
     external
-    payable
     requireIsOperational
-    requireIsFundedAirLine(msg.sender)
-    requireIsAirLine(airlineAddress)
     {
-        dataContract.voteForAirline(airlineAddress);
+        require(airlines[airlineAddress].votes.voters[votingAirlineAddress] == false, "Airline already voted in voteForAirline");
+        airlines[airlineAddress].votes.voters[votingAirlineAddress] = true;
+        uint startingVotes = getAirlineVotesCount(airlineAddress);
+
+        require(airlines[airlineAddress].votes.voters[votingAirlineAddress] == true, "Voter record was not saved in voteForAirline");
+        airlines[airlineAddress].votes.votersCount = startingVotes.add(1);
+        uint endingVotes = getAirlineVotesCount(airlineAddress);
+
+        require(endingVotes == 1, "Count was not incremented in voteForAirline");
+        emit AirlineVoted(votingAirlineAddress,  airlineAddress, startingVotes, endingVotes);
+
     }
 
-
+/**
+    * @dev vote for an airline to be registered 
+    *
+    */  
+    function getAirlineVotesCount
+    (
+        address airlineAddress
+        )
+    view
+    requireIsOperational
+    returns(uint)
+    {
+        airlines[airlineAddress].votes.votersCount;
+        emit GetVotesCalled(airlines[airlineAddress].votes.votersCount);
+    }
 
 
    /**
@@ -343,6 +379,32 @@ contract FlightSuretyData {
     returns(uint)
     {
         return fundedAirlinesCount;
+    }
+
+    function getRegisteredAirlinesCount()
+    requireIsOperational
+    view
+    returns(uint)
+    {
+        return registeredAirlinesCount;
+    }
+
+
+    function getExistAirlinesCount()
+    requireIsOperational
+    view
+    returns(uint)
+    {
+        return airlinesCount;
+    }
+
+
+
+    function getMinimumRequireVotingCount()
+    view
+    returns(uint)
+    {
+        return registeredAirlinesCount.div(2);
     }
 }
 

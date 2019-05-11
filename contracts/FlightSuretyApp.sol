@@ -74,13 +74,19 @@ contract FlightSuretyApp {
 
     modifier requireIsAirLine()
     {
-        require(dataContract.airlineExists(msg.sender), "Airline does not exist");
+        require(dataContract.airlineExists(msg.sender), "Airline does not exist in requireIsAirLine");
         _;
     }
 
     modifier requireIsRegisteredAirLine()
     {
-        require(dataContract.airlineRegistered(msg.sender), "Airline is not registered");
+        require(dataContract.airlineRegistered(msg.sender), "Airline is not registered in requireIsRegisteredAirLine");
+        _;
+    }
+
+    modifier requireIsFundedAirLine()
+    {
+        require(dataContract.airlineFunded(msg.sender), "Airline is not funded in requireIsFundedAirLine");
         _;
     }
     /********************************************************************************************/
@@ -155,17 +161,37 @@ contract FlightSuretyApp {
         )
     external
     requireIsOperational
-    requireIsRegisteredAirLine
+    requireIsFundedAirLine
     {
         // bool needsVoting = airlineRegistrationNeedsVoting();
         if ( dataContract.getFundedAirlinesCount() > MinimumAirlinesCount){
-            dataContract.registerAirline(airlineAddress, false, false);
+            dataContract.registerAirline(airlineAddress, false);
         }
         else{
-            dataContract.registerAirline(airlineAddress, true, false);
+            dataContract.registerAirline(airlineAddress, true);
 
         }
     }
+
+
+
+   /**
+    * @dev Add an airline to the registration queue
+    *
+    */   
+    function fundAirline
+    (
+        address airlineAddress
+        )
+    external
+    payable
+    requireIsOperational
+    {
+        require(msg.sender == airlineAddress, "Only the airline can fund itself");
+        require(msg.value >= 1 ether, "No enough funding recieved");
+        dataContract.fund.value(1 ether)(airlineAddress);
+    }
+
 
 
    /**

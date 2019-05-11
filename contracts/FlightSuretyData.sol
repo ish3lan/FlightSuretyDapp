@@ -4,7 +4,7 @@ import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 contract FlightSuretyData {
     using SafeMath for uint256;
-    using SafeMath for uint16;
+    using SafeMath for uint;
 
     /********************************************************************************************/
     /*                                       DATA VARIABLES                                     */
@@ -13,6 +13,7 @@ contract FlightSuretyData {
     address private contractOwner;                                      // Account used to deploy contract
     bool private operational = true;                                    // Blocks all state changes throughout the contract if false
 
+    mapping (address=>bool) private authorizedCallers;
 
     struct Airline{
         bool exists;
@@ -20,19 +21,22 @@ contract FlightSuretyData {
         bool funded;
         bytes32[] flightKeys;
         Votes votes;
-
     }
+
     struct Votes{
         uint votersCount;
         mapping(address => bool) voters;
     }
 
-    uint256 private airlinesCount = 0;
-    uint256 private registeredAirlinesCount = 0;
-    uint256 private fundedAirlinesCount = 0;
+    uint private airlinesCount = 0;
+    uint private registeredAirlinesCount = 0;
+    uint private fundedAirlinesCount = 0;
     
     mapping(address => Airline) private airlines;
 
+    event AirlineExist(address airlineAddress, bool exist);
+    event AirlineRegistered(address airlineAddress, bool exist, bool registered);
+    event AirlineFunded(address airlineAddress, bool exist, bool registered, bool funded, uint fundedCount);
 
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
@@ -57,9 +61,13 @@ contract FlightSuretyData {
             flightKeys: new bytes32[](0),
             votes: Votes(0)
             });
+
         airlinesCount = airlinesCount.add(1);
         registeredAirlinesCount = registeredAirlinesCount.add(1);
-        fundedAirlinesCount = fundedAirlinesCount.add(1);
+        // fundedAirlinesCount = fundedAirlinesCount.add(1);
+        emit AirlineExist(airlineAddress,  airlines[airlineAddress].exists);
+        emit AirlineRegistered( airlineAddress,  airlines[airlineAddress].exists, airlines[airlineAddress].registered);
+        // emit AirlineFunded( airlineAddress,  airlines[airlineAddress].exists, airlines[airlineAddress].registered, airlines[airlineAddress].funded);
 
     }
 
@@ -95,7 +103,7 @@ contract FlightSuretyData {
     */
     modifier requireAirLineExist(address airlineAddress) 
     {
-        require(airlines[airlineAddress].exists, "Airline does not existed");
+        require(airlines[airlineAddress].exists, "Airline does not existed in requireAirLineExist");
         _;  // All modifiers require an "_" which indicates where the function body will be added
     }
 
@@ -104,8 +112,8 @@ contract FlightSuretyData {
     */
     modifier requireAirLineRegistered(address airlineAddress) 
     {
-        require(airlines[airlineAddress].exists, "Airline does not existed");
-        require(airlines[airlineAddress].registered, "Airline is not registered");
+        require(airlines[airlineAddress].exists, "Airline does not existed in requireAirLineRegistered");
+        require(airlines[airlineAddress].registered, "Airline is not registered in requireAirLineRegistered");
         _;  // All modifiers require an "_" which indicates where the function body will be added
     }
 
@@ -114,9 +122,9 @@ contract FlightSuretyData {
     */
     modifier requireAirLineFunded(address airlineAddress) 
     {
-        require(airlines[airlineAddress].exists, "Airline does not existed");
-        require(airlines[airlineAddress].registered, "Airline is not registered");
-        require(airlines[airlineAddress].registered, "Airline is not funded");
+        require(airlines[airlineAddress].exists, "Airline does not existed in requireAirLineFunded");
+        require(airlines[airlineAddress].registered, "Airline is not registered in requireAirLineFunded");
+        require(airlines[airlineAddress].funded, "Airline is not funded in requireAirLineFunded");
 
         _;  // All modifiers require an "_" which indicates where the function body will be added
     }
@@ -156,6 +164,14 @@ contract FlightSuretyData {
         operational = mode;
     }
 
+
+    function authorizeCaller(address contractAddress)
+    external
+    requireContractOwner
+    {
+        authorizedCallers[contractAddress] = true;
+    }
+
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
@@ -168,8 +184,7 @@ contract FlightSuretyData {
     function registerAirline
     (
         address airlineAddress,
-        bool registered,
-        bool funded
+        bool registered
         )
     requireIsOperational
     external
@@ -178,17 +193,16 @@ contract FlightSuretyData {
         {
             exists: true,
             registered:registered, 
-            funded:funded,
+            funded:false,
             flightKeys: new bytes32[](0),
             votes: Votes(0)
             });
+        emit AirlineExist(airlineAddress,  airlines[airlineAddress].exists);
 
         airlinesCount = airlinesCount.add(1);
         if(registered){
             registeredAirlinesCount = registeredAirlinesCount.add(1);
-        }
-        if(funded){
-            fundedAirlinesCount = fundedAirlinesCount.add(1);
+            emit AirlineRegistered( airlineAddress,  airlines[airlineAddress].exists, airlines[airlineAddress].registered);
         }
     }
 
@@ -217,10 +231,8 @@ contract FlightSuretyData {
     view
     returns(bool)
     {
-        if (airlines[airlineAddress].registered){
-            return airlines[airlineAddress].funded;
-        }
-        return false;
+        require(airlines[airlineAddress].funded, "Airline is not funded in airlineFunded");
+        return airlines[airlineAddress].funded;
     }
 
 
@@ -267,14 +279,17 @@ contract FlightSuretyData {
     *
     */   
     function fund
-    ()
+    (address airlineAddress)
     public
     payable
     requireIsOperational
-    requireAirLineRegistered(msg.sender)
+    requireAirLineRegistered(airlineAddress)
     {
         require(msg.value >= 1 ether, "No suffecient funds supplied");
-        airlines[msg.sender];
+        airlines[airlineAddress].funded = true;
+        fundedAirlinesCount = fundedAirlinesCount.add(1);
+        emit AirlineFunded( airlineAddress,  airlines[airlineAddress].exists, airlines[airlineAddress].registered,  airlines[airlineAddress].funded, fundedAirlinesCount );
+
     }
 
     function getFlightKey
@@ -298,7 +313,7 @@ contract FlightSuretyData {
     external 
     payable 
     {
-        fund();
+        fund(msg.sender);
     }
 
 
@@ -306,7 +321,7 @@ contract FlightSuretyData {
     function getFundedAirlinesCount()
     requireIsOperational
     view
-    returns(uint256)
+    returns(uint)
     {
         return fundedAirlinesCount;
     }

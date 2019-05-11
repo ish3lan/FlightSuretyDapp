@@ -8,7 +8,8 @@ module.exports = {
         return new HDWalletProvider(mnemonic, "http://127.0.0.1:8545/", 0, 50);
       },
       network_id: '*',
-      gas: 8000000
+      gas: 5555555,
+      gasPrice: 20000000000
     }
   },
   compilers: {

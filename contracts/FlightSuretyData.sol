@@ -259,8 +259,9 @@ contract FlightSuretyData {
     requireIsOperational
     returns(uint)
     {
-        airlines[airlineAddress].votes.votersCount;
         emit GetVotesCalled(airlines[airlineAddress].votes.votersCount);
+        return airlines[airlineAddress].votes.votersCount;
+
     }
 
 

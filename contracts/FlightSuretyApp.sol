@@ -219,6 +219,7 @@ contract FlightSuretyApp {
         dataContract.voteForAirline(msg.sender, airlineAddress);
         if (dataContract.getAirlineVotesCount(airlineAddress) > dataContract.getMinimumRequireVotingCount()){
             dataContract.setAirlineRegistered(airlineAddress);
+            emit AirlineRegistered(airlineAddress);
         }
     }
 

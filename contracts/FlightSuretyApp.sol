@@ -46,10 +46,9 @@ contract FlightSuretyApp {
 
 
     event AirlineSwitchToRegistered(address airlineAddress, bool registered);
-
     event AirlineAdded(address airlineAddress);
     event AirlineRegistered(address airlineAddress);
-
+    event AirlineNotRegistered(address airlineAddress, uint a, uint b, bool c);
 
 
     /********************************************************************************************/
@@ -217,9 +216,16 @@ contract FlightSuretyApp {
     requireIsAirLine(airlineAddress)
     {
         dataContract.voteForAirline(msg.sender, airlineAddress);
-        if (dataContract.getAirlineVotesCount(airlineAddress) > dataContract.getMinimumRequireVotingCount()){
+        uint voteCount = dataContract.getAirlineVotesCount(airlineAddress);
+        uint minimumRequireVotingCount = dataContract.getMinimumRequireVotingCount();
+        bool registrationStatus = dataContract.airlineRegistered(airlineAddress);
+        if ( voteCount > minimumRequireVotingCount && !registrationStatus){
             dataContract.setAirlineRegistered(airlineAddress);
             emit AirlineRegistered(airlineAddress);
+        }
+        else{
+            //for testing purposes
+            emit AirlineNotRegistered(airlineAddress, voteCount, minimumRequireVotingCount, registrationStatus);
         }
     }
 

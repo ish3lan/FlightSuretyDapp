@@ -242,7 +242,7 @@ contract FlightSuretyData {
         airlines[airlineAddress].votes.votersCount = startingVotes.add(1);
         uint endingVotes = getAirlineVotesCount(airlineAddress);
 
-        require(endingVotes == 1, "Count was not incremented in voteForAirline");
+        require(endingVotes == startingVotes + 1, "Count was not incremented in voteForAirline");
         emit AirlineVoted(votingAirlineAddress,  airlineAddress, startingVotes, endingVotes);
 
     }
@@ -361,7 +361,8 @@ contract FlightSuretyData {
     returns(bool)
     {
         if (airlines[airlineAddress].exists){
-            return airlines[airlineAddress].registered;
+            bool registrationStatus = airlines[airlineAddress].registered;
+            return registrationStatus;
         }
         return false;
     }
@@ -406,6 +407,6 @@ contract FlightSuretyData {
     returns(uint)
     {
         return registeredAirlinesCount.div(2);
-    }
+    }   
 }
 

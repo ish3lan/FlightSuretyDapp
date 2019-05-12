@@ -93,23 +93,32 @@ contract('Flight Surety Tests', async (accounts) => {
 
 
   // it('(airline) can fund itself', async () => {
-  //   config.flightSuretyData.AirlineFunded((error, res)=>{
+
+  //   await config.flightSuretyData.AirlineFunded((error, res)=>{
   //   });
+  //   //ARRANGE
+  //   let newAirline = accounts[8];
+  //   let startingFundedCount = await config.flightSuretyData.getFundedAirlinesCount.call();
   //   // ACT
   //   try {
-  //     await config.flightSuretyApp.fundAirline(config.firstAirline, {from: config.firstAirline, value: web3.utils.toWei('1', "ether")});
+  //     await config.flightSuretyApp.fundAirline(config.firstAirline, {from: config.firstAirline, value: web3.utils.toWei('10', "ether")});
+  //     await config.flightSuretyApp.registerAirline(newAirline, {from: config.firstAirline});
+  //     await config.flightSuretyApp.fundAirline(newAirline, {from: newAirline, value: web3.utils.toWei('10', "ether")});
+
   //   }
   //   catch(e) {
   //   }
 
-
-  //   let fundedCount = await config.flightSuretyData.getFundedAirlinesCount.call();
-  //   assert.equal(fundedCount.toNumber(), 1 , "funded count does not match 1");
+  //   let endingFundedCount = await config.flightSuretyData.getFundedAirlinesCount.call();
+  //   assert.equal(endingFundedCount.toNumber(), startingFundedCount.toNumber() + 2 , "funded count did not increase");
 
 
   //   let result = await config.flightSuretyData.airlineFunded.call(config.firstAirline); 
+  //   let result2 = await config.flightSuretyData.airlineFunded.call(newAirline); 
+
   //   // ASSERT
   //   assert.equal(result, true, "Airline funding is not successful");
+  //   assert.equal(result2, true, "2nd Airline funding is not successful");
 
   // });
 
@@ -132,31 +141,31 @@ contract('Flight Surety Tests', async (accounts) => {
 
   // });
 
-  it('(airline) can vote for an Airline  voteForAirline() if it is funded', async () => {
+  // it('(airline) can vote for an Airline  voteForAirline() if it is funded', async () => {
 
 
-    // ARRANGE
-    let newAirline = accounts[4];
-    console.log(newAirline);
-    let startVoteCount = 0;
-    // ACT
-    try {
-      await config.flightSuretyApp.fundAirline(config.firstAirline, {from: config.firstAirline,value: web3.utils.toWei('10', "ether")});
-      await config.flightSuretyApp.registerAirline(newAirline, {from: config.firstAirline});
-      startVoteCount = await config.flightSuretyData.getAirlineVotesCount.call(newAirline, {from: config.firstAirline});
-      console.log(startVoteCount.toNumber());
-      await config.flightSuretyApp.voteForAirline(newAirline, {from: config.firstAirline});
-    }
-    catch(e) {
-      assert.equal(e, true, "Error in try");
-    }
-    let endVoteCount = await config.flightSuretyData.getAirlineVotesCount.call(newAirline, {from: config.firstAirline});
-    console.log(endVoteCount.toNumber());
+  //   // ARRANGE
+  //   let newAirline = accounts[4];
+  //   console.log(newAirline);
+  //   let startVoteCount = 0;
+  //   // ACT
+  //   try {
+  //     await config.flightSuretyApp.fundAirline(config.firstAirline, {from: config.firstAirline,value: web3.utils.toWei('10', "ether")});
+  //     await config.flightSuretyApp.registerAirline(newAirline, {from: config.firstAirline});
+  //     startVoteCount = await config.flightSuretyData.getAirlineVotesCount.call(newAirline, {from: config.firstAirline});
+  //     console.log(startVoteCount.toNumber());
+  //     await config.flightSuretyApp.voteForAirline(newAirline, {from: config.firstAirline});
+  //   }
+  //   catch(e) {
+  //     assert.equal(e, true, "Error in try");
+  //   }
+  //   let endVoteCount = await config.flightSuretyData.getAirlineVotesCount.call(newAirline, {from: config.firstAirline});
+  //   console.log(endVoteCount.toNumber());
 
-    // ASSERT
-    assert.equal(endVoteCount.toNumber(), startVoteCount.toNumber() + 1, "Funded airline was not able to vote for a registered airline");
+  //   // ASSERT
+  //   assert.equal(endVoteCount.toNumber(), startVoteCount.toNumber() + 1, "Funded airline was not able to vote for a registered airline");
 
-  });
+  // });
 
 
 
@@ -165,6 +174,8 @@ contract('Flight Surety Tests', async (accounts) => {
 
 
   //   // ARRANGE
+  //   let startingRegistereAirlineCount = await config.flightSuretyData.getRegisteredAirlinesCount.call( {from: config.firstAirline});
+  //   let startingExistAirlineCount = await config.flightSuretyData.getExistAirlinesCount.call({from: config.firstAirline});
 
   //   // ACT
   //   try {
@@ -177,8 +188,8 @@ contract('Flight Surety Tests', async (accounts) => {
   //   catch(e) {
   //     assert.equal(e, true, "Error in try");
   //   }
-  //   let registereAirlineCount = await config.flightSuretyData.getRegisteredAirlinesCount.call( {from: config.firstAirline});
-  //   let existAirlineCount = await config.flightSuretyData.getExistAirlinesCount.call({from: config.firstAirline});
+  //   let endingRegistereAirlineCount = await config.flightSuretyData.getRegisteredAirlinesCount.call( {from: config.firstAirline});
+  //   let endingExistAirlineCount = await config.flightSuretyData.getExistAirlinesCount.call({from: config.firstAirline});
 
   //   console.log(registereAirlineCount.toNumber(), existAirlineCount.toNumber());
 
@@ -186,5 +197,54 @@ contract('Flight Surety Tests', async (accounts) => {
   //   assert.equal(registereAirlineCount.toNumber(), existAirlineCount.toNumber() - 1 , "Funded airline was not able to vote for a registered airline");
 
   // });
+
+
+
+  it('5th (airline) will recieve vogtes till it get registered', async () => {
+
+
+    // ARRANGE
+    let newAirline = accounts[7];
+    // let startVoteCount = 0;
+    // let startingRegistereAirlineCount = await config.flightSuretyData.getRegisteredAirlinesCount.call( {from: config.firstAirline});
+    // let startingExistAirlineCount = await config.flightSuretyData.getExistAirlinesCount.call({from: config.firstAirline});
+
+    // ACT
+    try {
+      await config.flightSuretyApp.fundAirline(config.firstAirline, {from: config.firstAirline,value: web3.utils.toWei('10', "ether")});
+
+      await config.flightSuretyApp.registerAirline(accounts[4], {from: config.firstAirline});
+      await config.flightSuretyApp.fundAirline(accounts[4], {from: accounts[4],value: web3.utils.toWei('10', "ether")});
+      await config.flightSuretyApp.registerAirline(accounts[5], {from: config.firstAirline});
+      await config.flightSuretyApp.fundAirline(accounts[5], {from: accounts[5],value: web3.utils.toWei('10', "ether")});
+      await config.flightSuretyApp.registerAirline(accounts[6], {from: config.firstAirline});
+      await config.flightSuretyApp.fundAirline(accounts[6], {from: accounts[6],value: web3.utils.toWei('10', "ether")});
+      await config.flightSuretyApp.registerAirline(newAirline, {from: config.firstAirline});
+      // await config.flightSuretyApp.fundAirline(accounts[7], {from: accounts[7],value: web3.utils.toWei('10', "ether")});
+
+      // startVoteCount = await config.flightSuretyData.getAirlineVotesCount.call(newAirline, {from: config.firstAirline});
+      // console.log(startVoteCount.toNumber());
+      await config.flightSuretyApp.voteForAirline(newAirline, {from: config.firstAirline});
+      await config.flightSuretyApp.voteForAirline(newAirline, {from: accounts[4]});
+      await config.flightSuretyApp.voteForAirline(newAirline, {from: accounts[5]});
+      await config.flightSuretyApp.voteForAirline(newAirline, {from: accounts[6]});
+
+    }
+    catch(e) {
+      assert.equal(e, true, "Error in try");
+    }
+
+    // startVoteCount = await config.flightSuretyData.getAirlineVotesCount.call(newAirline, {from: config.firstAirline});
+    // console.log(startVoteCount.toNumber());
+
+    // let endingRegistereAirlineCount = await config.flightSuretyData.getRegisteredAirlinesCount.call( {from: config.firstAirline});
+    // let endingExistAirlineCount = await config.flightSuretyData.getExistAirlinesCount.call({from: config.firstAirline});
+    // console.log(startingRegistereAirlineCount.toNumber(), startingExistAirlineCount.toNumber());
+    // console.log(endingRegistereAirlineCount.toNumber(), endingExistAirlineCount.toNumber());
+    let registrationStatus = await config.flightSuretyData.airlineRegistered(newAirline);
+    // ASSERT
+    assert.equal(registrationStatus, true , "Voting for airlines will make it registered if pass needed number");
+
+  });
 
 });

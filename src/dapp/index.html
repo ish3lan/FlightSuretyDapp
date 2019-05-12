@@ -14,19 +14,31 @@
     <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
         <a class="navbar-brand" href="#">FlightSurety</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault"
-            aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-    </nav>
+        aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+</nav>
 
-    <main class="container">
+<main class="container">
 
-        <div id="display-wrapper" class="top-20">
-        </div>
-        <div class="row top-20">
-            <label class="form">Flight</label> <input type="text" id="flight-number"> <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
-        </div>
-    </main>
+    <div id="display-wrapper" class="top-20">
+    </div>
+    <div class="row top-20">
+        <label class="form">Flight</label> <input type="text" id="flight-number"> <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
+    </div>
+    <div class="row top-20">
+        <label class="form">Ticket Number:</label> 
+        <input id="ticket-number">
+        <label class="form">Insurance Amount:</label> 
+        <input type="number" id="ether-amount" placeholder="in ether">
+    </div>
+    <div class="row top-20">
+        <btn class="btn btn-primary" id="buy-insurance">Buy Insurance</btn> 
+        <p class="text-default">  or  </p>
+        <btn class="btn btn-primary" id="pay-insurance">Pay Insurance</btn>
+    </div>
+    
+</main>
 
 </body>
 

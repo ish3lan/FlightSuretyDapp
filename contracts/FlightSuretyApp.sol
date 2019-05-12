@@ -283,6 +283,34 @@ contract FlightSuretyApp {
     }
 
 
+
+
+    function buyInsurance
+    (
+        uint amount,
+        address airline,
+        uint ticket,
+        )
+    external
+    requireIsOperational
+    requireIsFundedAirLine(airline)
+    {
+
+    }
+
+
+    function payInsurance
+    (
+        address airline,
+        uint ticket,
+        )
+    external
+    requireIsOperational
+    requireIsFundedAirLine(airline)
+    {
+
+    }
+
 // region ORACLE MANAGEMENT
 
     // Incremented to add pseudo-randomness at various points

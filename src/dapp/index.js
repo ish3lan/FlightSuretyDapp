@@ -15,7 +15,7 @@ import './flightsurety.css';
             console.log(error,result);
             display('Operational Status', 'Check if contract is operational', [ { label: 'Operational Status', error: error, value: result} ]);
         });
-    
+
 
         // User-submitted transaction
         DOM.elid('submit-oracle').addEventListener('click', () => {
@@ -25,8 +25,31 @@ import './flightsurety.css';
                 display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: result.flight + ' ' + result.timestamp} ]);
             });
         })
-    
+
+        DOM.elid('buy-insurance').addEventListener('click', async () => {
+            let amount = DOM.elid('ether-amount').value;
+            let flight = DOM.elid('flight-number').value;
+            let ticket = DOM.elid('ticket-number').value;
+            await contract.buyInsurance(flight, ticket, amount, (error, result) => {
+                display(
+                    'Buy Insurance', '', [{ label: 'Flight', error: error, value: result.flight.name + ' ' + result.flight.departure }, { label: 'Ticket', value: result.ticket }, ]);
+
+            });
+        })
+
+        DOM.elid('pay-insurance').addEventListener('click', async() => {
+            let flight = DOM.elid('flight-number').value;
+            let ticket = DOM.elid('ticket-number').value;
+            // Write transaction
+            await contract.payInsurance(flight, ticket, (error, result) => {
+                display(
+                    'Insurance', 'Insurance credit withdrow', [{ label: 'Flight', error: error, value: result.flight.name + ' ' + result.flight.departure },]);
+            });
+        })
+
     });
+
+
     
 
 })();

@@ -21,6 +21,7 @@ contract FlightSuretyData {
         bool funded;
         bytes32[] flightKeys;
         Votes votes;
+        uint numberOfInsurance;
     }
 
     struct Votes{
@@ -28,10 +29,31 @@ contract FlightSuretyData {
         mapping(address => bool) voters;
     }
 
+    struct Insurance {
+        address buyer;
+        address airline;
+        uint value;
+        uint ticketNumber;
+        InsuranceState state;
+    }
+
+    enum InsuranceState {
+        NotExist,
+        WaitingForBuyer,
+        Bought,
+        Passed,
+        Expired
+    }
+
+    mapping(bytes32 => Insurance) private insurances;
+    mapping(bytes32 => bytes32[]) private flightInsuranceKeys;
+    mapping(address => bytes32[]) private passengerInsuranceKeys;
+
     uint private airlinesCount = 0;
     uint private registeredAirlinesCount = 0;
     uint private fundedAirlinesCount = 0;
-    
+
+
     mapping(address => Airline) private airlines;
 
     event AirlineExist(address airlineAddress, bool exist);
@@ -60,7 +82,9 @@ contract FlightSuretyData {
             registered:true, 
             funded: false,
             flightKeys: new bytes32[](0),
-            votes: Votes(0)
+            votes: Votes(0),
+            numberOfInsurance:0
+
             });
 
         airlinesCount = airlinesCount.add(1);
@@ -104,7 +128,7 @@ contract FlightSuretyData {
     */
     modifier requireAirLineExist(address airlineAddress) 
     {
-        require(airlines[airlineAddress].exists, "Airline does not existed in requireAirLineExist");
+        require(airlines[airlineAddress].exists, "Airline does not exist in requireAirLineExist");
         _;  // All modifiers require an "_" which indicates where the function body will be added
     }
 
@@ -113,7 +137,7 @@ contract FlightSuretyData {
     */
     modifier requireAirLineRegistered(address airlineAddress) 
     {
-        require(airlines[airlineAddress].exists, "Airline does not existed in requireAirLineRegistered");
+        require(airlines[airlineAddress].exists, "Airline does not exist in requireAirLineRegistered");
         require(airlines[airlineAddress].registered, "Airline is not registered in requireAirLineRegistered");
         _;  // All modifiers require an "_" which indicates where the function body will be added
     }
@@ -123,11 +147,18 @@ contract FlightSuretyData {
     */
     modifier requireAirLineFunded(address airlineAddress) 
     {
-        require(airlines[airlineAddress].exists, "Airline does not existed in requireAirLineFunded");
+        require(airlines[airlineAddress].exists, "Airline does not exist in requireAirLineFunded");
         require(airlines[airlineAddress].registered, "Airline is not registered in requireAirLineFunded");
         require(airlines[airlineAddress].funded, "Airline is not funded in requireAirLineFunded");
 
         _;  // All modifiers require an "_" which indicates where the function body will be added
+    }
+
+
+    modifier requireAuthorizedCaller(address contractAddress)
+    {
+        require(callerIsAuthorized(contractAddress), "Not Authorized Caller");
+        _;
     }
 
     /********************************************************************************************/
@@ -167,10 +198,16 @@ contract FlightSuretyData {
 
 
     function authorizeCaller(address contractAddress)
-    external
+    public
     requireContractOwner
     {
         authorizedCallers[contractAddress] = true;
+    }
+    function callerIsAuthorized(address contractAddress)
+    public
+    returns(bool)
+    {
+        return authorizedCallers[contractAddress];
     }
 
     /********************************************************************************************/
@@ -196,7 +233,8 @@ contract FlightSuretyData {
             registered:registered, 
             funded:false,
             flightKeys: new bytes32[](0),
-            votes: Votes(0)
+            votes: Votes(0),
+            numberOfInsurance:0
             });
         airlinesCount = airlinesCount.add(1);
         if(registered == true){
@@ -263,6 +301,16 @@ contract FlightSuretyData {
         return airlines[airlineAddress].votes.votersCount;
 
     }
+    function addFlightKeyToAirline
+    (
+        address airlineAddress,
+        bytes32 flightKey
+        )
+    external
+    requireAuthorizedCaller(msg.sender)
+    {
+        airlines[airlineAddress].flightKeys.push(flightKey);
+    }
 
 
    /**
@@ -283,11 +331,28 @@ contract FlightSuretyData {
      */
      function creditInsurees
      (
+        bytes32 flightKey,
+        uint8 creditRate
         )
      external
-     pure
+     requireAuthorizedCaller(msg.sender)
      {
-     }
+        bytes32[] storage _insurancesKeys = flightInsuranceKeys[flightKey];
+
+        for (uint i = 0; i < _insurancesKeys.length; i++) {
+            Insurance storage _insurance = insurances[_insurancesKeys[i]];
+
+            if (_insurance.state == InsuranceState.Bought) {
+                _insurance.value = _insurance.value.mul(creditRate).div(100);
+                if (_insurance.value > 0)
+                _insurance.state = InsuranceState.Passed;
+                else
+                _insurance.state = InsuranceState.Expired;
+                } else {
+                    _insurance.state = InsuranceState.Expired;
+                }
+            }  
+        }
 
 
     /**
@@ -408,5 +473,158 @@ contract FlightSuretyData {
     {
         return registeredAirlinesCount.div(2);
     }   
+
+
+    function getInsuranceKey
+    (
+        bytes32 flightKey,
+        uint ticketNumber
+
+        )
+    private
+    pure 
+    returns(bytes32) 
+    {
+        return keccak256(abi.encodePacked(flightKey, ticketNumber));
+    }
+
+
+    function buildFlightInsurance
+    (
+        address airlineAddress,
+        bytes32 flightKey,
+        uint ticketNumber
+        )
+    external
+    requireAuthorizedCaller(msg.sender)
+    {
+        bytes32 insuranceKey = getInsuranceKey(flightKey, ticketNumber);
+
+        insurances[insuranceKey] = Insurance({
+            buyer: address(0),
+            airline: airlineAddress,
+            value: 0,
+            ticketNumber: ticketNumber,
+            state: InsuranceState.WaitingForBuyer
+            });
+
+        flightInsuranceKeys[flightKey].push(insuranceKey);
+    }
+
+
+
+
+
+    // bool isExist,
+    // bool registered,
+    // bool funded,
+    // uint votesCount,
+    // bytes32[] memory flightKeys,
+    // uint numberOfInsurance
+
+
+    function fetchAirlineData(address airlineAddress)
+    external
+    view
+    requireIsOperational
+    requireAuthorizedCaller(msg.sender)
+    requireAirLineExist(airlineAddress)
+    returns(
+        bool exists,
+        bool registered,
+        bool funded,
+        uint votesCount,
+        bytes32[] memory flightKeys,
+        uint numberOfInsurance
+        )
+    {
+        Airline memory _airline = airlines[airlineAddress];
+        return(
+            _airline.exists,
+            _airline.registered,
+            _airline.funded,
+            _airline.votes.votersCount,
+            _airline.flightKeys,
+            _airline.numberOfInsurance
+            );
+    }
+
+    function fetchInsuranceData(bytes32 insuranceKey)
+    external
+    view
+    requireIsOperational
+    requireAuthorizedCaller(msg.sender)
+    returns(
+        address buyer,
+        address airline,
+        uint value,
+        uint ticketNumber,
+        InsuranceState state
+        )
+    {
+        Insurance memory _insurance = insurances[insuranceKey];
+        return(_insurance.buyer,
+            _insurance.airline,
+            _insurance.value,
+            _insurance.ticketNumber,
+            _insurance.state);
+    }
+
+
+
+
+    function fetchPasengerInsurances(address passengerAddress)
+    external
+    view
+    requireIsOperational
+    requireAuthorizedCaller(msg.sender)
+    returns(bytes32[] memory)
+    {
+        return passengerInsuranceKeys[passengerAddress];
+    }
+
+    function fetchFlightInsurances(bytes32 flightKey)
+    external
+    view
+    requireIsOperational
+    requireAuthorizedCaller(msg.sender)
+    returns(bytes32[] memory)
+    {
+        return flightInsuranceKeys[flightKey];
+    }
+
+
+    function payInsuree(bytes32 insuranceKey)
+    external
+    requireAuthorizedCaller(msg.sender)
+    {
+        Insurance memory _insurance = insurances[insuranceKey];
+        require(_insurance.state == InsuranceState.Passed, "Insurance is not valid");
+        require(address(this).balance > _insurance.value, "try again later");
+
+        uint _value = _insurance.value;
+        _insurance.value = 0;
+        _insurance.state = InsuranceState.Expired;
+        address insuree = address(uint160(_insurance.buyer));
+        insuree.transfer(_value);
+
+    }
+
+    function buyInsurance
+    (
+        address  buyer,
+        bytes32 insuranceKey
+        )
+    external
+    payable
+    {
+        require(insurances[insuranceKey].state == InsuranceState.WaitingForBuyer, "Insurance allredy bought, or not exist or expired");
+
+        insurances[insuranceKey].value = msg.value;
+        insurances[insuranceKey].buyer = buyer;
+        insurances[insuranceKey].state = InsuranceState.Bought;
+
+        //passengerInsuranceKeys[buyer].push(insuranceKey);
+    }
 }
 

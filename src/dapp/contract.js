@@ -155,9 +155,11 @@ export default class Contract {
         .fetchFlightStatus(
             self.flights[flightName].airlineAddress,
             self.flights[flightName].name,
-            self.flights[flightName].updatedTimestamp
+            Math.floor(Date.now() / 1000)
             )
-        .send({ from: self.owner, gas: 1500000}, (err, res) => callback(err, self.flights[flightName]));
+        .send({ from: self.owner, gas: 1500000}, (err, res) => {
+            callback(err, self.flights[flightName])
+        });
     }
 
     purchaseInsurance(flightName, ticketNumber, amount, callback){

@@ -259,7 +259,7 @@ contract FlightSuretyApp {
             name: flightName,
             departure: departure,
             statusCode: 0,
-            timestamp: now,
+            updatedTimestamp: now,
             airline: msg.sender
             });
 

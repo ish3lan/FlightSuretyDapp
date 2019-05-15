@@ -141,7 +141,7 @@ contract FlightSuretyApp {
     (
         bool mode
         ) 
-    external
+    public
     requireContractOwner 
     {
         operational = mode;
@@ -157,7 +157,7 @@ contract FlightSuretyApp {
     *
     */   
     // function airlineRegistrationNeedsVoting()
-    // external
+    // public
     // returns(bool)
     // {
     //     return dataContract.getFundedAirlinesCount > 4;
@@ -173,7 +173,7 @@ contract FlightSuretyApp {
     (   
         address airlineAddress
         )
-    external
+    public
     requireIsOperational
     requireIsFundedAirLine(msg.sender)
     {
@@ -198,7 +198,7 @@ contract FlightSuretyApp {
     (
         address airlineAddress
         )
-    external
+    public
     payable
     requireIsOperational
     {
@@ -216,7 +216,7 @@ contract FlightSuretyApp {
     (
         address airlineAddress
         )
-    external
+    public
     requireIsOperational
     requireIsFundedAirLine(msg.sender)
     requireIsAirLine(airlineAddress)
@@ -247,7 +247,7 @@ contract FlightSuretyApp {
         uint256[] ticketNumbers,
         string flightName
         )
-    external
+    public
     requireIsOperational
     requireIsFundedAirLine(msg.sender)
     {
@@ -281,7 +281,7 @@ contract FlightSuretyApp {
         uint256 departure,
         uint256[] ticketNumbers
         )
-    external
+    public
     requireIsOperational
     requireIsFundedAirLine(msg.sender)
     {
@@ -331,7 +331,7 @@ contract FlightSuretyApp {
         string flight,
         uint256 timestamp                            
         )
-    external
+    public
     {
         uint8 index = getRandomIndex(msg.sender);
 
@@ -347,7 +347,7 @@ contract FlightSuretyApp {
 
 
     function getAirline(address airlineAddress)
-    external
+    public
     view
     returns(
         bool isExist,
@@ -367,7 +367,7 @@ contract FlightSuretyApp {
         string flightName,
         uint departureTime
         )
-    external
+    public
     view
     returns(
         bool isRegistered,
@@ -397,7 +397,7 @@ contract FlightSuretyApp {
         uint departureTime,
         uint _ticketNumber
         )
-    external
+    public
     view
     returns(
         address buyer,
@@ -428,7 +428,7 @@ contract FlightSuretyApp {
 
 
     function getInsuranceKeysOfPassanger(address _address)
-    external
+    public
     view
     returns(bytes32[] memory)
     {
@@ -441,7 +441,7 @@ contract FlightSuretyApp {
         string flightName,
         uint departureTime
         )
-    external
+    public
     view
     returns(bytes32[] memory)
     {
@@ -456,7 +456,7 @@ contract FlightSuretyApp {
         uint256 departure,
         uint256 ticketNumber
         )
-    external
+    public
     payable
     requireIsOperational
     {
@@ -479,7 +479,7 @@ contract FlightSuretyApp {
         uint256 departure,
         uint ticketNumber
         )
-    external
+    public
     requireIsOperational
     {
         bytes32 flightKey = getFlightKey(airlineAddress, flightName, departure);
@@ -547,7 +547,7 @@ contract FlightSuretyApp {
     function registerOracle
     (
         )
-    external
+    public
     payable
     {
         // Require registration fee
@@ -565,7 +565,7 @@ contract FlightSuretyApp {
     (
         )
     view
-    external
+    public
     returns(uint8[3])
     {
         require(oracles[msg.sender].isRegistered, "Not registered as an oracle");
@@ -588,7 +588,7 @@ contract FlightSuretyApp {
         uint256 timestamp,
         uint8 statusCode
         )
-    external
+    public
     {
         require((oracles[msg.sender].indexes[0] == index) || (oracles[msg.sender].indexes[1] == index) || (oracles[msg.sender].indexes[2] == index), "Index does not match oracle request");
 

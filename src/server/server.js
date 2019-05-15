@@ -3,7 +3,7 @@ import Config from './config.json';
 import Web3 from 'web3';
 import express from 'express';
 import FlightSuretyData from '../../build/contracts/FlightSuretyData.json';
-
+require("babel-polyfill")
 
 let config = Config['localhost'];
 let web3 = new Web3(new Web3.providers.WebsocketProvider(config.url.replace('http', 'ws')));
@@ -55,6 +55,8 @@ setTimeout(() => {
   console.log("\nStart watching for event OracleRequest to submit responses")
 }, 25000)
 
+
+// flightSuretyApp.events.AirlineRegistered((error, event)=>{console.log(event);});
 
 flightSuretyApp.events.OracleRequest({
   fromBlock: 0

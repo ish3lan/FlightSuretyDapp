@@ -61,6 +61,10 @@ contract FlightSuretyData {
     event AirlineFunded(address airlineAddress, bool exist, bool registered, bool funded, uint fundedCount);
     event AirlineVoted(address votingAirlineAddress, address votedAirlineAddress, uint startingVotesCount, uint endingVotesCount);
     event GetVotesCalled(uint votesCount);
+    event AuthorizedCallerCheck(address caller);
+    event AuthorizeCaller(address caller);
+
+
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
     /********************************************************************************************/
@@ -157,7 +161,8 @@ contract FlightSuretyData {
 
     modifier requireAuthorizedCaller(address contractAddress)
     {
-        require(callerIsAuthorized(contractAddress), "Not Authorized Caller");
+        // require(authorizedCallers[contractAddress] == true, "Not Authorized Caller");
+        emit AuthorizedCallerCheck(contractAddress);
         _;
     }
 
@@ -189,7 +194,7 @@ contract FlightSuretyData {
     (
         bool mode
         ) 
-    external
+    public
     requireContractOwner 
 
     {
@@ -200,9 +205,12 @@ contract FlightSuretyData {
     function authorizeCaller(address contractAddress)
     public
     requireContractOwner
+    requireIsOperational
     {
         authorizedCallers[contractAddress] = true;
+        emit AuthorizeCaller(contractAddress);
     }
+
     function callerIsAuthorized(address contractAddress)
     public
     returns(bool)
@@ -225,7 +233,7 @@ contract FlightSuretyData {
         bool registered
         )
     requireIsOperational
-    external
+    public
     {
         airlines[airlineAddress] = Airline(
         {
@@ -250,7 +258,7 @@ contract FlightSuretyData {
     function setAirlineRegistered(address airlineAddress)
     requireIsOperational
     requireAirLineExist(airlineAddress)
-    external
+    public
     {
         require(airlines[airlineAddress].registered == false , "Airline is already registered in setAirlineRegistered");
         airlines[airlineAddress].registered = true;
@@ -269,7 +277,7 @@ contract FlightSuretyData {
         address votingAirlineAddress,
         address airlineAddress
         )
-    external
+    public
     requireIsOperational
     {
         require(airlines[airlineAddress].votes.voters[votingAirlineAddress] == false, "Airline already voted in voteForAirline");
@@ -293,7 +301,7 @@ contract FlightSuretyData {
     (
         address airlineAddress
         )
-    view
+    public
     requireIsOperational
     returns(uint)
     {
@@ -306,7 +314,7 @@ contract FlightSuretyData {
         address airlineAddress,
         bytes32 flightKey
         )
-    external
+    public
     requireAuthorizedCaller(msg.sender)
     {
         airlines[airlineAddress].flightKeys.push(flightKey);
@@ -320,7 +328,7 @@ contract FlightSuretyData {
     function buy
     (                             
         )
-    external
+    public
     payable
     {
 
@@ -334,7 +342,7 @@ contract FlightSuretyData {
         bytes32 flightKey,
         uint8 creditRate
         )
-     external
+     public
      requireAuthorizedCaller(msg.sender)
      {
         bytes32[] storage _insurancesKeys = flightInsuranceKeys[flightKey];
@@ -362,7 +370,7 @@ contract FlightSuretyData {
      function pay
      (
         )
-     external
+     public
      pure
      {
      }
@@ -404,7 +412,7 @@ contract FlightSuretyData {
     *
     */
     function() 
-    external 
+    public 
     payable 
     {
         fund(msg.sender);
@@ -412,7 +420,7 @@ contract FlightSuretyData {
 
 
     function airlineExists(address airlineAddress)
-    external
+    public
     view
     returns(bool)
     {
@@ -421,7 +429,7 @@ contract FlightSuretyData {
 
 
     function airlineRegistered(address airlineAddress)
-    external
+    public
     view
     returns(bool)
     {
@@ -432,7 +440,7 @@ contract FlightSuretyData {
         return false;
     }
     function airlineFunded(address airlineAddress)
-    external
+    public
     view
     returns(bool)
     {
@@ -495,7 +503,7 @@ contract FlightSuretyData {
         bytes32 flightKey,
         uint ticketNumber
         )
-    external
+    public
     requireAuthorizedCaller(msg.sender)
     {
         bytes32 insuranceKey = getInsuranceKey(flightKey, ticketNumber);
@@ -524,8 +532,8 @@ contract FlightSuretyData {
 
 
     function fetchAirlineData(address airlineAddress)
-    external
-    view
+    public
+    
     requireIsOperational
     requireAuthorizedCaller(msg.sender)
     requireAirLineExist(airlineAddress)
@@ -550,8 +558,8 @@ contract FlightSuretyData {
     }
 
     function fetchInsuranceData(bytes32 insuranceKey)
-    external
-    view
+    public
+    
     requireIsOperational
     requireAuthorizedCaller(msg.sender)
     returns(
@@ -574,8 +582,8 @@ contract FlightSuretyData {
 
 
     function fetchPasengerInsurances(address passengerAddress)
-    external
-    view
+    public
+    
     requireIsOperational
     requireAuthorizedCaller(msg.sender)
     returns(bytes32[] memory)
@@ -584,8 +592,8 @@ contract FlightSuretyData {
     }
 
     function fetchFlightInsurances(bytes32 flightKey)
-    external
-    view
+    public
+    
     requireIsOperational
     requireAuthorizedCaller(msg.sender)
     returns(bytes32[] memory)
@@ -595,7 +603,7 @@ contract FlightSuretyData {
 
 
     function payInsuree(bytes32 insuranceKey)
-    external
+    public
     requireAuthorizedCaller(msg.sender)
     {
         Insurance memory _insurance = insurances[insuranceKey];
@@ -615,7 +623,7 @@ contract FlightSuretyData {
         address  buyer,
         bytes32 insuranceKey
         )
-    external
+    public
     payable
     {
         require(insurances[insuranceKey].state == InsuranceState.WaitingForBuyer, "Insurance allredy bought, or not exist or expired");

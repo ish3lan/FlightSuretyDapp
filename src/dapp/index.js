@@ -9,16 +9,8 @@ import './flightsurety.css';
     let result = null;
 
     let contract = new Contract('localhost', () => {
-
         // Read transaction
         contract.isOperational((error, result) => {
-            console.log(error,result);
-            if (result != null){
-                console.log(result);
-            }
-            if (error != null){
-                console.log(error);
-            }
             console.log("Next display is operational.");
             display('Operational Status', 'Check if contract is operational', [ { label: 'Operational Status', error: error, value: result} ]);
         });
@@ -37,7 +29,8 @@ import './flightsurety.css';
             let amount = DOM.elid('ether-amount').value;
             let flight = DOM.elid('flight-number').value;
             let ticket = DOM.elid('ticket-number').value;
-            await contract.buyInsurance(flight, ticket, amount, (error, result) => {
+            await contract.purchaseInsurance(flight, ticket, amount, (error, result) => {
+                console.log(result);
                 display(
                     'Buy Insurance', '', [{ label: 'Flight', error: error, value: result.flight.name + ' ' + result.flight.departure }, { label: 'Ticket', value: result.ticket }, ]);
 
@@ -48,7 +41,7 @@ import './flightsurety.css';
             let flight = DOM.elid('flight-number').value;
             let ticket = DOM.elid('ticket-number').value;
             // Write transaction
-            await contract.payInsurance(flight, ticket, (error, result) => {
+            await contract.withdrawCredit(flight, ticket, (error, result) => {
                 display(
                     'Insurance', 'Insurance credit withdrow', [{ label: 'Flight', error: error, value: result.flight.name + ' ' + result.flight.departure },]);
             });
@@ -56,6 +49,7 @@ import './flightsurety.css';
 
     });
 
+// console.log(contract);
 
     
 
@@ -63,6 +57,7 @@ import './flightsurety.css';
 
 
 function display(title, description, results) {
+    // console.log(`title $(title). discrition : $(description). result : $(result)`);
     let displayDiv = DOM.elid("display-wrapper");
     let section = DOM.section();
     section.appendChild(DOM.h2(title));

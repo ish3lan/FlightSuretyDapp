@@ -59,7 +59,7 @@ export default class Contract {
         // console.log(firstAirline);
 
 
-        let firstAirlineRegistered = await this.flightSuretyData.methods.airlineRegistered(firstAirline).call({from:this.owner});
+        let firstAirlineRegistered = await this.flightSuretyData.methods.airlineRegistered(firstAirline).call({from:this.owner, gas: 1500000});
         console.log(firstAirlineRegistered);
         for(let i=0; i<2; i++) {
 
@@ -69,12 +69,12 @@ export default class Contract {
                     console.log("will register a new airline");
                     await this.flightSuretyApp.methods
                     .registerAirline(airlinesAddresses[i])
-                    .send({from: firstAirline});
+                    .send({from: firstAirline, gas: 1500000});
                     console.log(`Done registering airline ${airlinesAddresses[i]} by: ${firstAirline}`);
-                    console.log(await this.flightSuretyData.methods.airlineRegistered(airlinesAddresses[i]).call({from:this.owner}));
+                    console.log(await this.flightSuretyData.methods.airlineRegistered(airlinesAddresses[i]).call({from:this.owner, gas: 1500000}));
                     console.log();
                 } catch (e) { 
-                    console.log(`Error while registring new airline, address: ${airlinesAddresses[i]}\n${e.message}, and submitter ${firstAirline}`) 
+                    console.log(`Error while registring new airline, address: ${airlinesAddresses[i]}\n${e}, and submitter ${firstAirline}`) 
                 }
             }
             try {
@@ -82,58 +82,60 @@ export default class Contract {
                 .fundAirline(airlinesAddresses[i])
                 .send({
                     from: airlinesAddresses[i], 
-                    value: this.web3.utils.toWei('10', "ether")
+                    value: this.web3.utils.toWei('10', "ether"),
+                    gas: 1500000
                 });
                 console.log(`Done funding airline ${airlinesAddresses[i]} by: ${airlinesAddresses[i]}`);
-                console.log(await this.flightSuretyData.methods.airlineFunded(airlinesAddresses[i]).call({from:this.owner}));
+                console.log(await this.flightSuretyData.methods.airlineFunded(airlinesAddresses[i]).call({from:this.owner, gas: 1500000}));
 
                 // console.log(airlinesAddresses[i]);
             } catch (e) { 
                 console.log(`Error while funding airline ${i}, address: ${airlinesAddresses[i]}\n${e.message}`);
             }
 
-            // this.flights[flightsNames[i]] = {
-            //     airlineAddress: airlinesAddresses[i],
-            //     name: flightsNames[i],
-            //     departure: Math.floor(new Date(2019, 3, 1, 22, 30, 0, 0) / 1000),
-            //     tickets: ticketsNumbers[i]
-            // };
+            this.flights[flightsNames[i]] = {
+                airlineAddress: airlinesAddresses[i],
+                name: flightsNames[i],
+                departure: Math.floor(new Date(2019, 3, 1, 22, 30, 0, 0) / 1000),
+                tickets: ticketsNumbers[i]
+            };
 
-            // try {
-            //     await this.flightSuretyApp.methods
-            //     .registerFlight(
-            //         this.flights[flightsNames[i]].departure,
-            //         ticketsNumbers[i],
-            //         this.flights[flightsNames[i]].name
-            //         )
-            //     .send({from: airlinesAddresses[i], gas: 1500000})
-            // } catch (e) { 
-            //     console.log(`Error while register new flight for airline, address: ${airlinesAddresses[i]}\n${e.message}`) 
-            // }
+            try {
+                await this.flightSuretyApp.methods
+                .registerFlight(
+                    this.flights[flightsNames[i]].departure,
+                    ticketsNumbers[i],
+                    this.flights[flightsNames[i]].name
+                    )
+                .send({from: airlinesAddresses[i], gas: 1500000});
+                console.log(`Done registering new flight for airline, address: ${airlinesAddresses[i]}\n${this.flights[flightsNames[i]].name}`) 
+            } catch (e) { 
+                console.log(`Error while register new flight for airline, address: ${airlinesAddresses[i]}\n${e.message}`) 
+            }
 
-            // let airline = await this.flightSuretyApp.methods.getAirline(airlinesAddresses[i]).call();
-            // console.log(`Airline Name: ${airline.name} has ben registered and funded with Address: ${airlinesAddresses[i]}`);
-            // console.log(airline);
+            let airline = await this.flightSuretyApp.methods.getAirline(airlinesAddresses[i]).call();
+            console.log(`Airline Name: ${airline.name} has ben registered and funded with Address: ${airlinesAddresses[i]}`);
+            console.log(airline);
 
-            // let insurance1 = await this.flightSuretyApp.methods
-            // .getInsurance(
-            //     airlinesAddresses[i],
-            //     this.flights[flightsNames[i]].name,
-            //     this.flights[flightsNames[i]].departure,
-            //     this.flights[flightsNames[i]].tickets[0],
-            //     )
-            // .call();
-            // let insurance2 = await this.flightSuretyApp.methods
-            // .getInsurance(
-            //     airlinesAddresses[i],
-            //     this.flights[flightsNames[i]].name,
-            //     this.flights[flightsNames[i]].departure,
-            //     this.flights[flightsNames[i]].tickets[1],
-            //     )
-            // .call();
+            let insurance1 = await this.flightSuretyApp.methods
+            .getInsurance(
+                airlinesAddresses[i],
+                this.flights[flightsNames[i]].name,
+                this.flights[flightsNames[i]].departure,
+                this.flights[flightsNames[i]].tickets[0],
+                )
+            .call();
+            let insurance2 = await this.flightSuretyApp.methods
+            .getInsurance(
+                airlinesAddresses[i],
+                this.flights[flightsNames[i]].name,
+                this.flights[flightsNames[i]].departure,
+                this.flights[flightsNames[i]].tickets[1],
+                )
+            .call();
 
-            // console.log(`And registered flight number: ✈️ '${flightsNames[i]}' with tickets numbers: (🎫${insurance1.ticketNumber}, 🎫${insurance2.ticketNumber})`);
-            // console.log(insurance1) ; 
+            console.log(`And registered flight number: ✈️ '${flightsNames[i]}' with tickets numbers: (🎫${insurance1.ticketNumber}, 🎫${insurance2.ticketNumber})`);
+            console.log(insurance1) ; 
         }
         console.log("will callback");
         callback();
@@ -144,7 +146,7 @@ export default class Contract {
         console.log("will call is operational");
         self.flightSuretyApp.methods
         .isOperational()
-        .call({ from: self.owner}, callback);
+        .call({ from: self.owner, gas: 1500000}, callback);
     }
 
     fetchFlightStatus(flightName, callback) {
@@ -153,16 +155,16 @@ export default class Contract {
         .fetchFlightStatus(
             self.flights[flightName].airlineAddress,
             self.flights[flightName].name,
-            self.flights[flightName].departure,
+            self.flights[flightName].updatedTimestamp
             )
-        .send({ from: self.owner}, (err, res) => callback(err, self.flights[flightName]));
+        .send({ from: self.owner, gas: 1500000}, (err, res) => callback(err, self.flights[flightName]));
     }
 
     purchaseInsurance(flightName, ticketNumber, amount, callback){
         let self = this;
 
         this.flightSuretyApp.methods
-        .purchaseInsurance(
+        .buyInsurance(
             self.flights[flightName].airlineAddress,
             self.flights[flightName].name,
             self.flights[flightName].departure,
@@ -180,7 +182,7 @@ export default class Contract {
         let self = this;
         
         this.flightSuretyApp.methods
-        .withdrawCredit(
+        .payInsurance(
             self.flights[flightName].airlineAddress,
             self.flights[flightName].name,
             self.flights[flightName].departure,

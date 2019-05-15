@@ -50,3 +50,9 @@ Deploy the contents of the ./dapp folder
 * [Solidity Language Reference](http://solidity.readthedocs.io/en/v0.4.24/)
 * [Ethereum Blockchain Explorer](https://etherscan.io/)
 * [Web3Js Reference](https://github.com/ethereum/wiki/wiki/JavaScript-API)
+
+## Disclaimer
+I got inspiration from these resources:
+* https://medium.com/@andresaaap/flightsurety-project-faq-udacity-blockchain-b4bd4fb03320
+* https://github.com/khalidfsh/flight-surety-dapp
+* https://www.youtube.com/watch?v=0TQbBrLYJFQ

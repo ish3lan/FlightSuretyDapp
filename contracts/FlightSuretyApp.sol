@@ -316,10 +316,12 @@ contract FlightSuretyApp {
         bytes32 flightKey = getFlightKey(airline, flight, timestamp);
         flights[flightKey].statusCode = statusCode;
 
-        if (statusCode == STATUS_CODE_LATE_AIRLINE)
-        dataContract.creditInsurees(flightKey, CREDIT_RATE);
-        else
-        dataContract.creditInsurees(flightKey, 0);
+        if (statusCode == STATUS_CODE_LATE_AIRLINE || statusCode == STATUS_CODE_LATE_WEATHER || statusCode == STATUS_CODE_LATE_OTHER || statusCode == STATUS_CODE_LATE_TECHNICAL){
+            dataContract.creditInsurees(flightKey, CREDIT_RATE);
+        }
+        else{
+            dataContract.creditInsurees(flightKey, 0);
+        }
 
     }
 

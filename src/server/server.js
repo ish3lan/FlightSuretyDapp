@@ -67,7 +67,7 @@ flightSuretyApp.events.OracleRequest({
     console.log(event)
     let randomStatusCode = Math.floor(Math.random() * 6) * 10;
     let eventValue = event.returnValues;
-    console.log(`Got a new event with randome index: ${eventValue.index} for flight: ${eventValue.flight}`);
+    console.log(`Got a new event with randome index: ${eventValue.index} for flight: ${eventValue.flight} and timestamp ${eventValue.timestamp}`);
 
     orcales.forEach((oracle) => {
       oracle.indexes.forEach((index) => {
@@ -90,7 +90,12 @@ flightSuretyApp.events.OracleRequest({
 });
 
 
+flightSuretyData.events.InsuranceStateValue( function (error, event){
+  console.log(error);
+  console.log(event);
+}
 
+  )
 
 const app = express();
 app.get('/api', (req, res) => {

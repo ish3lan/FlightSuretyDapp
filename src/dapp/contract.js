@@ -60,13 +60,13 @@ export default class Contract {
 
 
         let firstAirlineRegistered = await this.flightSuretyData.methods.airlineRegistered(firstAirline).call({from:this.owner, gas: 1500000});
-        console.log(firstAirlineRegistered);
+        // console.log(firstAirlineRegistered);
         for(let i=0; i<2; i++) {
 
             if(i > 0 ){
                 try {
 
-                    console.log("will register a new airline");
+                    // console.log("will register a new airline");
                     await this.flightSuretyApp.methods
                     .registerAirline(airlinesAddresses[i])
                     .send({from: firstAirline, gas: 1500000});
@@ -114,8 +114,8 @@ export default class Contract {
             }
 
             let airline = await this.flightSuretyApp.methods.getAirline(airlinesAddresses[i]).call();
-            console.log(`Airline Name: ${airline.name} has ben registered and funded with Address: ${airlinesAddresses[i]}`);
-            console.log(airline);
+            console.log(`Airline Name: ${airline.name} has ben registered ${airline.registered} and funded ${airline.funded} with Address: ${airlinesAddresses[i]}`);
+            // console.log(airline);
 
             let insurance1 = await this.flightSuretyApp.methods
             .getInsurance(
@@ -137,7 +137,7 @@ export default class Contract {
             console.log(`And registered flight number: ✈️ '${flightsNames[i]}' with tickets numbers: (🎫${insurance1.ticketNumber}, 🎫${insurance2.ticketNumber})`);
             console.log(insurance1) ; 
         }
-        console.log("will callback");
+        // console.log("will callback");
         callback();
     }
 
@@ -176,7 +176,7 @@ export default class Contract {
             from: self.passenger,
             value: self.web3.utils.toWei(amount, "ether"),
             gass: 1500000,
-        }, (err, res) => callback(err, {flight: self.flights[flightName], ticket: ticketNumber}));
+        }, (err, res) =>{console.log(res); callback(err, {flight: self.flights[flightName], ticket: ticketNumber})});
         
     }
 

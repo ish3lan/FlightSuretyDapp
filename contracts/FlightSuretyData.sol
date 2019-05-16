@@ -63,8 +63,8 @@ contract FlightSuretyData {
     event GetVotesCalled(uint votesCount);
     event AuthorizedCallerCheck(address caller);
     event AuthorizeCaller(address caller);
-
-
+    event InsurancePaid(uint amount, address to);
+    event InsuranceStateValue(InsuranceState state);
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
     /********************************************************************************************/
@@ -607,6 +607,9 @@ contract FlightSuretyData {
     requireAuthorizedCaller(msg.sender)
     {
         Insurance memory _insurance = insurances[insuranceKey];
+        if (_insurance.state != InsuranceState.Passed){
+            emit InsuranceStateValue(_insurance.state);
+        }
         require(_insurance.state == InsuranceState.Passed, "Insurance is not valid");
         require(address(this).balance > _insurance.value, "try again later");
 
@@ -615,7 +618,7 @@ contract FlightSuretyData {
         _insurance.state = InsuranceState.Expired;
         address insuree = address(uint160(_insurance.buyer));
         insuree.transfer(_value);
-
+        emit InsurancePaid(_value, insuree);
     }
 
     function buyInsurance

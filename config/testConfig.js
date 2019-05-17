@@ -2,6 +2,7 @@
 var FlightSuretyApp = artifacts.require("FlightSuretyApp");
 var FlightSuretyData = artifacts.require("FlightSuretyData");
 var BigNumber = require('bignumber.js');
+var TruffleAssert = require('truffle-assertions');
 
 var Config = async function(accounts) {
 

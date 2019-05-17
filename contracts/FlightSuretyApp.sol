@@ -57,6 +57,7 @@ contract FlightSuretyApp {
     event FlightTicketsAdded(uint[] ticketsNumbers, bytes32 flightKey);
     event CreditDrawed(uint value);
     event InsuranceBought(bytes32 insuranceKey);
+    event OracleRegistered(address oracleaddress, bool isRegistered);
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
     /********************************************************************************************/
@@ -315,8 +316,8 @@ contract FlightSuretyApp {
     {
         bytes32 flightKey = getFlightKey(airline, flight, timestamp);
         flights[flightKey].statusCode = statusCode;
-
-        if (statusCode == STATUS_CODE_LATE_AIRLINE || statusCode == STATUS_CODE_LATE_WEATHER || statusCode == STATUS_CODE_LATE_OTHER || statusCode == STATUS_CODE_LATE_TECHNICAL){
+//|| statusCode == STATUS_CODE_LATE_WEATHER || statusCode == STATUS_CODE_LATE_OTHER || statusCode == STATUS_CODE_LATE_TECHNICAL
+        if (statusCode == STATUS_CODE_LATE_AIRLINE ){
             dataContract.creditInsurees(flightKey, CREDIT_RATE);
         }
         else{
@@ -561,6 +562,7 @@ contract FlightSuretyApp {
             isRegistered: true,
             indexes: indexes
             });
+        emit OracleRegistered( msg.sender, oracles[msg.sender].isRegistered);
     }
 
     function getMyIndexes
@@ -571,7 +573,6 @@ contract FlightSuretyApp {
     returns(uint8[3])
     {
         require(oracles[msg.sender].isRegistered, "Not registered as an oracle");
-
         return oracles[msg.sender].indexes;
     }
 

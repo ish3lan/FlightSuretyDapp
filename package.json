@@ -44,6 +44,7 @@
   },
   "dependencies": {
     "ganache-cli": "^6.4.3",
+    "truffle-assertions": "^0.9.0",
     "web3": "^1.0.0-beta.37",
     "yarn": "^1.15.2"
   }

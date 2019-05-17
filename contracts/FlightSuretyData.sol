@@ -629,7 +629,7 @@ contract FlightSuretyData {
     public
     payable
     {
-        require(insurances[insuranceKey].state == InsuranceState.WaitingForBuyer, "Insurance allredy bought, or not exist or expired");
+        // require(insurances[insuranceKey].state == InsuranceState.WaitingForBuyer, "Insurance allredy bought, or not exist or expired");
 
         insurances[insuranceKey].value = msg.value;
         insurances[insuranceKey].buyer = buyer;

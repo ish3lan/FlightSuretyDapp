@@ -47,12 +47,23 @@ import './flightsurety.css';
                     'Insurance', 'Insurance credit withdrow', [{ label: 'Flight', error: error, value: result.flight.name + ' ' + result.flight.departure },]);
             });
         })
+        DOM.elid('get-insurance').addEventListener('click', async() => {
+            let id = DOM.elid('id-block').value;
+            let airlineAddress = DOM.elid('airline-address').value;
+            let flight = DOM.elid('flight-number').value;
+
+            // Write transaction
+            await contract.getInsuranceData(id, airlineAddress,flight, (error, result) => {
+                display(
+                    'Insurance', 'Insurance Information', [{ label: 'Flight', error: 1, value:1}]);
+            });
+        })
 
     });
 
 // console.log(contract);
 
-    
+
 
 })();
 

@@ -317,14 +317,14 @@ contract FlightSuretyApp {
         bytes32 flightKey = getFlightKey(airline, flight, timestamp);
         flights[flightKey].statusCode = statusCode;
 //|| statusCode == STATUS_CODE_LATE_WEATHER || statusCode == STATUS_CODE_LATE_OTHER || statusCode == STATUS_CODE_LATE_TECHNICAL
-        if (statusCode == STATUS_CODE_LATE_AIRLINE ){
-            dataContract.creditInsurees(flightKey, CREDIT_RATE);
-        }
-        else{
-            dataContract.creditInsurees(flightKey, 0);
-        }
+if (statusCode == STATUS_CODE_LATE_AIRLINE ){
+    dataContract.creditInsurees(flightKey, CREDIT_RATE);
+}
+else{
+    dataContract.creditInsurees(flightKey, 0);
+}
 
-    }
+}
 
 
     // Generate a request for oracles to fetch flight information
@@ -393,7 +393,7 @@ contract FlightSuretyApp {
             );
     }
 
-    function getInsurance
+    function creditInsurees
     (
         address airlineAddress,
         string flightName,
@@ -416,6 +416,28 @@ contract FlightSuretyApp {
         return dataContract.fetchInsuranceData(insuranceKey);
     }
 
+    function getInsurance
+    (
+        address airlineAddress,
+        string flightName,
+        uint departureTime,
+        uint _ticketNumber
+        )
+    external
+    view
+    returns(
+        address buyer,
+        address airline,
+        uint value,
+        uint ticketNumber,
+        FlightSuretyData.InsuranceState state
+        )
+    {
+        bytes32 flightKey = getFlightKey(airlineAddress, flightName, departureTime);
+        bytes32 insuranceKey = getInsuranceKey(flightKey, _ticketNumber);
+
+        return dataContract.fetchInsuranceData(insuranceKey);
+    }
     function getInsuranceKey
     (
         bytes32 flightKey,
@@ -604,8 +626,10 @@ contract FlightSuretyApp {
         // Information isn't considered verified until at least MIN_RESPONSES
         // oracles respond with the *** same *** information
         emit OracleReport(airline, flight, timestamp, statusCode);
-        if (oracleResponses[key].responses[statusCode].length >= MIN_RESPONSES) {
 
+
+        if (oracleResponses[key].responses[statusCode].length >= MIN_RESPONSES) {
+            oracleResponses[key].isOpen = false;
             emit FlightStatusInfo(airline, flight, timestamp, statusCode);
 
             // Handle flight status as appropriate

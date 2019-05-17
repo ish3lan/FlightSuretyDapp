@@ -38,8 +38,14 @@ export default class Contract {
         this.passenger = accounts[0];
         // console.log("owner is " + this.owner);
         const flightsNames = ['HR305', 'JR430', 'MH666', 'NN199'];
+
         const ticketsNumbers = [['321', '324'], ['433', '567'], ['132', '544'], ['635', '343']];
         
+        for (var i = 0 ; i < flightsNames.length ; i++){
+            console.log(flightsNames[i]);
+            console.log(ticketsNumbers[i]);
+        }
+
         console.log("Hello Passenger, your adress is: "+ this.passenger);
 
         try {
@@ -72,7 +78,6 @@ export default class Contract {
                     .send({from: firstAirline, gas: 1500000});
                     console.log(`Done registering airline ${airlinesAddresses[i]} by: ${firstAirline}`);
                     console.log(await this.flightSuretyData.methods.airlineRegistered(airlinesAddresses[i]).call({from:this.owner, gas: 1500000}));
-                    console.log();
                 } catch (e) { 
                     console.log(`Error while registring new airline, address: ${airlinesAddresses[i]}\n${e}, and submitter ${firstAirline}`) 
                 }
@@ -160,6 +165,24 @@ export default class Contract {
         .send({ from: self.owner, gas: 1500000}, (err, res) => {
             callback(err, self.flights[flightName])
         });
+    }
+
+    async getInsuranceData(i,airlineAddress,flightName){
+        let self = this;
+         console.log(i);
+         console.log(airlineAddress);
+         console.log(flightName);
+        let insur = await this.flightSuretyApp.methods
+        .getInsurance(
+            airlineAddress,
+            this.flights[flightName].name,
+            this.flights[flightName].departure,
+            this.flights[flightName].tickets[1],
+            )
+        .call();
+        console.log(insur); 
+
+        
     }
 
     purchaseInsurance(flightName, ticketNumber, amount, callback){
